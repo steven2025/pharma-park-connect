@@ -1,0 +1,159 @@
+import React, { useEffect, useMemo, useState } from 'react'
+import { createRoot } from 'react-dom/client'
+import './styles.css'
+
+type Person = {
+  id: number; name: string; initials: string; color: string; role: string; group: string;
+  org: string; region: string; bio: string; skills: string[]; fields: string[];
+  status: string; verified: boolean; projects: number[]; offer: string; need: string;
+}
+
+type Project = {
+  id: number; title: string; short: string; field: string; stage: string; region: string;
+  need: string; verified: string; owner: number; people: number[]; summary: string;
+  highlights: string[]; ip: string; restricted: string[];
+}
+
+const people: Person[] = [
+  { id:1,name:'林远航',initials:'林',color:'#176b68',role:'认证技术经纪人',group:'技术经纪',org:'启新医药创新园',region:'上海',bio:'专注早期医药成果评价与产业资源对接，持续推动科研成果走向真实合作。',skills:['技术评价','产业资源对接','许可交易'],fields:['创新药','药物递送'],status:'接受项目委托',verified:true,projects:[1,3],offer:'项目初筛、交易路径设计与产业方引荐',need:'寻找有转化意愿的早期医药项目'},
+  { id:2,name:'陈知微',initials:'陈',color:'#465f8b',role:'高校研发人员',group:'成果研发',org:'华东生命科学研究院',region:'上海',bio:'从事靶向药物递送系统研究，关注从材料机制到临床前验证的完整转化路径。',skills:['药物研发','临床前研究','项目设计'],fields:['药物递送','肿瘤'],status:'寻找产业合作',verified:true,projects:[1],offer:'研发团队与实验平台',need:'联合开发、临床前研究和产业资金'},
+  { id:3,name:'周明川',initials:'周',color:'#725b8f',role:'临床前研究专家',group:'专业专家',org:'澄明药物评价中心',region:'苏州',bio:'具有多年药效与安全性评价经验，为创新药项目提供阶段判断和研究方案建议。',skills:['技术评估','药效研究','安全性评价'],fields:['创新药','临床前'],status:'接受专家咨询',verified:true,projects:[1,5],offer:'临床前策略评估与研究方案审阅',need:'希望参与高质量早期项目'},
+  { id:4,name:'许静宜',initials:'许',color:'#9a6645',role:'药企商务拓展负责人',group:'产业合作',org:'远澜生物医药',region:'杭州',bio:'负责外部创新项目引进及联合开发合作，关注具备差异化价值的技术平台。',skills:['商务拓展','项目引进','联合开发'],fields:['生物药','诊断技术'],status:'寻找合作项目',verified:true,projects:[2],offer:'产业验证、联合开发与商务合作',need:'寻找完成概念验证的创新项目'},
+  { id:5,name:'韩启正',initials:'韩',color:'#506b58',role:'产业投资人',group:'投融资',org:'青衡产业资本',region:'北京',bio:'关注生命科学早期投资与产业协同，重视团队执行能力和明确的临床价值。',skills:['投资分析','融资服务','产业协同'],fields:['创新药','医疗器械'],status:'接受项目推荐',verified:false,projects:[3,6],offer:'早期投资判断与产业资源协同',need:'寻找临床前及早期成长项目'},
+  { id:6,name:'沈若岚',initials:'沈',color:'#2d7183',role:'园区招商负责人',group:'政府园区',org:'启新医药创新园',region:'上海',bio:'为研发团队提供载体、政策和公共技术平台对接，协助项目完成产业化落地。',skills:['园区招商','项目落地','政策服务'],fields:['生物医药','研发服务'],status:'提供落地支持',verified:true,projects:[3,4],offer:'空间载体、政策辅导与公共平台对接',need:'寻找具有落地计划的医药团队'},
+  { id:7,name:'顾言之',initials:'顾',color:'#79634b',role:'知识产权专家',group:'专业服务',org:'知衡知识产权',region:'南京',bio:'专注医药专利布局、FTO分析和交易尽调，服务科研团队与成长型药企。',skills:['专利分析','知识产权','技术尽调'],fields:['创新药','诊断技术'],status:'接受专业委托',verified:true,projects:[2,5],offer:'专利布局、FTO分析和交易尽调',need:'与技术经纪人建立长期合作'},
+  { id:8,name:'唐以安',initials:'唐',color:'#7d4e62',role:'临床研究负责人',group:'专业专家',org:'新港医学中心',region:'上海',bio:'参与多中心临床研究设计与执行，关注临床需求与早期成果的有效衔接。',skills:['临床方案','临床试验','医学事务'],fields:['肿瘤','慢病管理'],status:'接受专家咨询',verified:false,projects:[4,6],offer:'临床路径与试验方案建议',need:'寻找具备临床价值的转化项目'},
+]
+
+const projects: Project[] = [
+  {id:1,title:'新型靶向药物递送技术',short:'提高肿瘤组织富集效率的递送技术平台',field:'药物递送',stage:'临床前',region:'上海',need:'联合开发',verified:'机构已确认',owner:2,people:[1,2,3],summary:'通过可调控载体结构改善药物在肿瘤组织中的富集和释放，为多类活性成分提供可扩展的递送方案。',highlights:['已完成核心材料筛选','具备初步体内药效数据','平台型技术，可拓展多种载荷'],ip:'已提交核心发明专利，部分实验细节需申请后查看。',restricted:['完整实验数据','专利技术交底书','项目商业计划']},
+  {id:2,title:'肿瘤早期筛查标志物项目',short:'面向高风险人群的多指标联合检测方案',field:'诊断技术',stage:'概念验证',region:'杭州',need:'产业合作',verified:'人员已确认',owner:4,people:[4,7],summary:'基于多组学数据筛选具有组合判别价值的候选标志物，拟开发适用于高风险人群筛查的检测产品。',highlights:['完成候选标志物初筛','具有明确临床应用场景','正在推进样本扩大验证'],ip:'核心算法与标志物组合正在进行知识产权布局。',restricted:['样本数据','算法说明','合作报价']},
+  {id:3,title:'长效蛋白药物制剂平台',short:'面向慢病治疗的长效缓释制剂解决方案',field:'生物药',stage:'实验室阶段',region:'上海',need:'融资',verified:'园区已核验',owner:1,people:[1,5,6],summary:'针对蛋白药物给药频率高的问题，建立兼顾稳定性与释放周期的长效制剂开发平台。',highlights:['拥有平台型配方思路','初步稳定性结果良好','适配多个慢病候选分子'],ip:'已形成技术秘密保护方案，计划提交专利。',restricted:['完整配方','稳定性数据','融资材料']},
+  {id:4,title:'智能临床试验数据协作系统',short:'提升多中心研究数据协同效率的数字工具',field:'数字医疗',stage:'产品验证',region:'上海',need:'临床合作',verified:'用户自主发布',owner:6,people:[6,8],summary:'为多中心临床研究提供任务、数据和问题闭环管理，降低跨机构协作成本。',highlights:['已完成可用原型','支持多角色权限','正在寻找真实场景验证'],ip:'软件著作权准备中。',restricted:['系统演示账号','数据架构','合作方案']},
+  {id:5,title:'生物医药连续生产工艺项目',short:'提高关键生产环节稳定性与产能利用率',field:'生产工艺',stage:'中试阶段',region:'苏州',need:'技术评估',verified:'机构已确认',owner:3,people:[3,7],summary:'围绕生物制品生产中的连续化关键环节进行工艺优化，具备进一步放大验证条件。',highlights:['完成小试工艺验证','关键参数窗口明确','具备中试放大基础'],ip:'形成工艺包，专利申请评估中。',restricted:['工艺参数','设备清单','成本测算']},
+  {id:6,title:'慢性病数字化管理方案',short:'连接患者随访与临床决策的管理工具',field:'数字医疗',stage:'试点阶段',region:'北京',need:'园区落地',verified:'人员已确认',owner:5,people:[5,8],summary:'面向慢病患者持续管理，整合随访、风险提示和医患协作，提高院外管理连续性。',highlights:['完成首版产品','已进入小规模试点','具备多病种扩展能力'],ip:'软件著作权已登记。',restricted:['试点数据','商业模型','机构合作清单']},
+]
+
+const groups = ['全部','成果研发','技术经纪','专业专家','产业合作','投融资','政府园区','专业服务']
+const fieldOptions = ['全部','药物递送','创新药','生物药','诊断技术','数字医疗','生产工艺']
+
+const activities = [
+  {id:1,title:'医药成果转化项目路演日',type:'项目路演',date:'09月26日 14:00',place:'园区路演中心',people:48,status:'报名中',desc:'6个早期医药项目现场展示，与产业方、投资人和技术经纪人面对面交流。'},
+  {id:2,title:'技术经纪人项目协作沙龙',type:'专业交流',date:'10月10日 13:30',place:'园区共享会议厅',people:32,status:'报名中',desc:'围绕项目判断、可信引荐和长期协作，分享真实转化实践。'},
+  {id:3,title:'创新药临床前评价专家会',type:'专家咨询',date:'10月18日 09:30',place:'线上与线下同步',people:24,status:'即将开放',desc:'邀请临床前研究专家为园区项目提供阶段判断和研究建议。'},
+]
+
+const news = [
+  {id:1,title:'园区启动医药科技成果协作网络验证计划',type:'园区新闻',date:'09月12日',summary:'以专业人员和真实项目为核心，探索更加可信、高效的成果转化协作方式。'},
+  {id:2,title:'首批技术经纪人专业主页开始认领',type:'平台公告',date:'09月10日',summary:'完成身份确认后，可补充能力、项目经历和当前合作需求。'},
+  {id:3,title:'三项早期医药成果进入专家评价阶段',type:'项目进展',date:'09月08日',summary:'项目将围绕技术成熟度、知识产权和产业合作路径开展初步评价。'},
+  {id:4,title:'园区新增临床研究与知识产权合作机构',type:'合作动态',date:'09月05日',summary:'进一步完善医药成果转化所需的专业服务资源。'},
+]
+
+const route = () => location.hash.replace(/^#\/?/, '') || 'home'
+const go = (path:string) => { location.hash = `#/${path}`; window.scrollTo({top:0,behavior:'smooth'}) }
+
+function Icon({name,size=20}:{name:string,size?:number}) {
+  const paths:Record<string,React.ReactNode>={
+    search:<><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></>,
+    people:<><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></>,
+    flask:<><path d="M9 3h6M10 3v6l-5 9a2 2 0 0 0 1.8 3h10.4a2 2 0 0 0 1.8-3l-5-9V3"/><path d="M8 15h8"/></>,
+    plus:<><path d="M12 5v14M5 12h14"/></>,
+    arrow:<><path d="m9 18 6-6-6-6"/></>,
+    map:<><path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></>,
+    badge:<><path d="m12 2 3 2 3.5.5.5 3.5 2 3-2 3-.5 3.5-3.5.5-3 2-3-2-3.5-.5-.5-3.5-2-3 2-3 .5-3.5L9 4Z"/><path d="m9 12 2 2 4-4"/></>,
+    message:<><path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4Z"/></>,
+    brief:<><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M3 12h18"/></>,
+    lock:<><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></>,
+    check:<path d="m5 12 4 4L19 6"/>,
+    home:<><path d="m3 11 9-8 9 8"/><path d="M5 10v11h14V10M9 21v-7h6v7"/></>,
+    user:<><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></>,
+  }
+  return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{paths[name]}</svg>
+}
+
+function Avatar({p,large=false}:{p:Person,large?:boolean}){return <div className={`avatar ${large?'avatar-large':''}`} style={{background:p.color}}>{p.initials}</div>}
+function Tag({children,tone='plain'}:{children:React.ReactNode,tone?:string}){return <span className={`tag tag-${tone}`}>{children}</span>}
+function Verified(){return <span className="verified"><Icon name="badge" size={15}/> 园区认证</span>}
+
+function Header({current}:{current:string}){
+  const items=[['home','首页'],['people','找人'],['projects','找项目'],['dynamic','园区动态']]
+  return <header className="header"><div className="nav-wrap">
+    <button className="brand" onClick={()=>go('home')}><span className="brand-mark"><Icon name="flask"/></span><span><b>医药成果协作网络</b><small>园区科技成果转化服务平台</small></span></button>
+    <nav>{items.map(([id,label])=><button key={id} className={current.startsWith(id)?'active':''} onClick={()=>go(id)}>{label}</button>)}</nav>
+    <div className="nav-actions"><button className="btn ghost" onClick={()=>go('inbox')}><Icon name="message"/>消息<span className="dot">2</span></button><button className="btn primary" onClick={()=>go('publish')}><Icon name="plus"/>发布项目</button><button className="mini-avatar" onClick={()=>go('me')}>林</button></div>
+  </div></header>
+}
+
+function MobileNav({current}:{current:string}){return <div className="mobile-nav">
+  {[['home','home','首页'],['people','people','找人'],['projects','flask','找项目'],['inbox','message','消息'],['me','user','我的']].map(([id,icon,label])=><button key={id} className={current.startsWith(id)?'active':''} onClick={()=>go(id)}><Icon name={icon}/><span>{label}</span>{id==='inbox'&&<i/>}</button>)}
+  </div>}
+
+function Layout({children,current}:{children:React.ReactNode,current:string}){return <><Header current={current}/><main>{children}</main><MobileNav current={current}/><footer><div><b>医药成果协作网络</b><p>连接成果持有人、技术经纪人、专业专家、企业、资本与园区服务人员。</p></div><span>产品验证版 · 页面内容均为演示数据</span></footer></>}
+
+function PersonCard({p}:{p:Person}){return <article className="person-card" onClick={()=>go(`people/${p.id}`)}>
+  <div className="person-top"><Avatar p={p}/><div><h3>{p.name}</h3><p>{p.role}</p></div>{p.verified&&<Verified/>}</div>
+  <p className="muted"><Icon name="brief" size={15}/>{p.org}</p><p className="muted"><Icon name="map" size={15}/>{p.region}</p>
+  <div className="tags">{p.skills.slice(0,3).map(x=><Tag key={x}>{x}</Tag>)}</div>
+  <p className="status-line"><span/> {p.status}</p>
+  <div className="card-foot"><span>关联项目 {p.projects.length} 个</span><button>查看主页 <Icon name="arrow" size={15}/></button></div>
+  </article>}
+
+function ProjectCard({p}:{p:Project}){const owner=people.find(x=>x.id===p.owner)!;return <article className="project-card" onClick={()=>go(`projects/${p.id}`)}>
+  <div className="project-head"><Tag tone="green">{p.field}</Tag><span>{p.verified}</span></div><h3>{p.title}</h3><p>{p.short}</p>
+  <div className="project-meta"><span>{p.stage}</span><span>{p.region}</span><span>寻找{p.need}</span></div>
+  <div className="project-owner"><Avatar p={owner}/><div><small>项目联系人</small><b>{owner.name} · {owner.role}</b></div><Icon name="arrow"/></div>
+  </article>}
+
+function Home(){const [kind,setKind]=useState<'people'|'projects'>('people');const [q,setQ]=useState('');const submit=()=>{sessionStorage.setItem('search',q);go(kind)};return <Layout current="home">
+  <section className="hero"><div className="hero-orb orb-one"/><div className="hero-orb orb-two"/><div className="hero-inner"><div className="eyebrow">园区可信网络 · 医药成果转化</div><h1>找到推动医药科技<br/><em>成果转化的人</em></h1><p>从专业能力到真实项目，连接成果持有人、技术经纪人、专家、企业、资本与园区资源。</p>
+    <div className="search-box"><div className="search-tabs"><button className={kind==='people'?'active':''} onClick={()=>setKind('people')}>找专业的人</button><button className={kind==='projects'?'active':''} onClick={()=>setKind('projects')}>找合作项目</button></div><div className="search-input"><Icon name="search"/><input value={q} onChange={e=>setQ(e.target.value)} onKeyDown={e=>e.key==='Enter'&&submit()} placeholder={kind==='people'?'搜索姓名、机构、专业能力或区域':'搜索项目、领域、阶段或合作需求'}/><button onClick={submit}>开始搜索</button></div></div>
+    <div className="quick"><span>热门：</span>{['技术评价','产业合作','园区落地','临床前'].map(x=><button key={x} onClick={()=>{sessionStorage.setItem('search',x);go(kind)}}>{x}</button>)}</div>
+  </div></section>
+  <section className="metrics"><div><b>18</b><span>专业成员</span></div><div><b>10</b><span>合作项目</span></div><div><b>7</b><span>交易角色</span></div><div><b>12</b><span>合作需求</span></div><small>演示数据</small></section>
+  <section className="section"><div className="section-title"><div><span>可信的人</span><h2>推荐专业成员</h2><p>经园区或机构核验，拥有明确能力与合作意愿</p></div><button onClick={()=>go('people')}>查看全部 <Icon name="arrow"/></button></div><div className="card-grid people-grid">{people.slice(0,4).map(p=><PersonCard key={p.id} p={p}/>)}</div></section>
+  <section className="section soft"><div className="section-title"><div><span>真实的机会</span><h2>正在寻找合作</h2><p>项目背后有明确的负责人和下一步需求</p></div><button onClick={()=>go('projects')}>进入项目库 <Icon name="arrow"/></button></div><div className="card-grid projects-grid">{projects.slice(0,3).map(p=><ProjectCard key={p.id} p={p}/>)}</div></section>
+  <section className="section dynamic-home"><div className="section-title"><div><span>连接发生的现场</span><h2>园区动态</h2><p>活动建立关系，资讯记录进展</p></div><button onClick={()=>go('dynamic')}>查看全部 <Icon name="arrow"/></button></div><button className="activity-feature" onClick={()=>go('dynamic')}><div className="calendar"><b>26</b><span>SEP</span></div><div><span>项目路演</span><h3>医药成果转化项目路演日</h3><p>14:00 · 园区路演中心 · 48人已报名</p></div><Icon name="arrow"/></button><div className="news-mini">{news.slice(0,2).map(x=><button key={x.id} onClick={()=>go('dynamic')}><span>{x.type}</span><b>{x.title}</b><small>{x.date}</small></button>)}</div></section>
+  <section className="section how"><div className="section-title centered"><div><span>让连接有依据</span><h2>从发现到第一次有效联系</h2></div></div><div className="steps">{[['01','建立可信主页','展示角色、专业能力、项目经历与合作意愿'],['02','关联真实项目','明确每个人在项目中的关系和贡献'],['03','找到合适的人','根据能力、领域、区域与需求进行搜索'],['04','发起合作申请','带着明确项目和目的建立专业联系']].map(x=><div key={x[0]}><i>{x[0]}</i><h3>{x[1]}</h3><p>{x[2]}</p></div>)}</div><div className="cta"><div><span>成为可信网络的一员</span><h2>从完善你的专业主页开始</h2><p>展示你能提供的能力，也告诉平台你正在寻找什么。</p></div><button className="btn light" onClick={()=>go('join')}>申请入驻 <Icon name="arrow"/></button></div></section>
+  </Layout>}
+
+function FilterBar({q,setQ,options,active,setActive,placeholder}:{q:string,setQ:(x:string)=>void,options:string[],active:string,setActive:(x:string)=>void,placeholder:string}){return <><div className="list-search"><Icon name="search"/><input value={q} onChange={e=>setQ(e.target.value)} placeholder={placeholder}/></div><div className="filter-row">{options.map(x=><button key={x} className={active===x?'active':''} onClick={()=>setActive(x)}>{x}</button>)}</div></>}
+
+function People(){const [q,setQ]=useState(()=>sessionStorage.getItem('search')||'');const [group,setGroup]=useState('全部');useEffect(()=>()=>sessionStorage.removeItem('search'),[]);const list=useMemo(()=>people.filter(p=>(group==='全部'||p.group===group)&&[p.name,p.role,p.org,p.region,...p.skills,...p.fields].join(' ').includes(q)),[q,group]);return <Layout current="people"><section className="page-head"><span>人物网络</span><h1>找到能够推动项目的人</h1><p>按角色、能力、领域和区域发现值得建立联系的专业成员。</p></section><section className="list-section"><FilterBar q={q} setQ={setQ} options={groups} active={group} setActive={setGroup} placeholder="搜索姓名、机构、专业能力或区域"/><div className="result-line"><b>{list.length}</b> 位符合条件的成员 <span>默认按匹配与可信度排序</span></div><div className="card-grid people-grid">{list.map(p=><PersonCard key={p.id} p={p}/>)}</div>{!list.length&&<Empty/>}</section></Layout>}
+
+function Projects(){const [q,setQ]=useState(()=>sessionStorage.getItem('search')||'');const [field,setField]=useState('全部');useEffect(()=>()=>sessionStorage.removeItem('search'),[]);const list=useMemo(()=>projects.filter(p=>(field==='全部'||p.field===field)&&[p.title,p.short,p.field,p.stage,p.region,p.need].join(' ').includes(q)),[q,field]);return <Layout current="projects"><section className="page-head project-page"><span>项目库</span><h1>发现值得推进的合作机会</h1><p>每个项目都有明确联系人、参与者和当前合作需求。</p></section><section className="list-section"><FilterBar q={q} setQ={setQ} options={fieldOptions} active={field} setActive={setField} placeholder="搜索项目、领域、阶段或合作需求"/><div className="result-line"><b>{list.length}</b> 个符合条件的项目 <span>项目内容均为演示数据</span></div><div className="card-grid projects-grid">{list.map(p=><ProjectCard key={p.id} p={p}/>)}</div>{!list.length&&<Empty/>}</section></Layout>}
+
+function Empty(){return <div className="empty"><Icon name="search" size={34}/><h3>暂未找到结果</h3><p>试试减少筛选条件或更换关键词。</p></div>}
+
+function PersonDetail({id}:{id:number}){const p=people.find(x=>x.id===id)||people[0];return <Layout current="people"><section className="detail-wrap"><button className="back" onClick={()=>history.back()}>← 返回人物列表</button><div className="profile-hero"><Avatar p={p} large/><div className="profile-main"><div className="title-row"><h1>{p.name}</h1>{p.verified&&<Verified/>}</div><h3>{p.role} · {p.org}</h3><p><Icon name="map" size={16}/>{p.region} · 可跨区域协作</p><div className="tags">{p.fields.map(x=><Tag tone="green" key={x}>{x}</Tag>)}{p.skills.map(x=><Tag key={x}>{x}</Tag>)}</div></div><div className="profile-actions"><button className="btn primary" onClick={()=>openContact(p.name)}><Icon name="message"/>发起合作</button><button className="btn outline">请求引荐</button></div></div>
+  <div className="detail-columns"><div className="detail-main"><InfoSection title="个人简介"><p>{p.bio}</p></InfoSection><InfoSection title="专业能力"><div className="skill-list">{p.skills.map((x,i)=><div key={x}><span><Icon name="check" size={15}/></span><div><b>{x}</b><p>{['具有相关项目实践与园区能力记录','可提供专业咨询与项目协作','持续关注相关领域合作机会'][i%3]}</p></div></div>)}</div></InfoSection><InfoSection title="关联项目"><div className="inline-projects">{projects.filter(x=>p.projects.includes(x.id)).map(x=><ProjectCard key={x.id} p={x}/>)}</div></InfoSection></div><aside><div className="aside-card"><h3>当前合作状态</h3><p className="status-line"><span/> {p.status}</p><hr/><small>可以提供</small><p>{p.offer}</p><small>正在寻找</small><p>{p.need}</p></div><div className="aside-card"><h3>身份与来源</h3><p className="checkline"><Icon name="check"/> 基础身份已核验</p>{p.verified&&<p className="checkline"><Icon name="check"/> 园区成员身份已确认</p>}<p className="checkline"><Icon name="check"/> 关联项目关系已确认</p><small>演示档案 · 最近更新于本月</small></div></aside></div></section></Layout>}
+
+function InfoSection({title,children}:{title:string,children:React.ReactNode}){return <section className="info-section"><h2>{title}</h2>{children}</section>}
+
+function ProjectDetail({id}:{id:number}){const p=projects.find(x=>x.id===id)||projects[0];const owner=people.find(x=>x.id===p.owner)!;return <Layout current="projects"><section className="detail-wrap"><button className="back" onClick={()=>history.back()}>← 返回项目库</button><div className="project-detail-head"><div><div className="tags"><Tag tone="green">{p.field}</Tag><Tag>{p.stage}</Tag><Tag>{p.region}</Tag></div><h1>{p.title}</h1><p>{p.short}</p><div className="trust"><Icon name="badge"/> {p.verified} <span>·</span> 最近更新于本月</div></div><div className="profile-actions"><button className="btn primary" onClick={()=>openContact(p.title)}><Icon name="message"/>发起合作</button><button className="btn outline"><Icon name="lock"/>申请资料</button></div></div>
+  <div className="detail-columns"><div className="detail-main"><InfoSection title="项目概况"><p>{p.summary}</p></InfoSection><InfoSection title="核心进展"><div className="highlights">{p.highlights.map(x=><div key={x}><Icon name="check"/>{x}</div>)}</div></InfoSection><InfoSection title="知识产权概况"><p>{p.ip}</p></InfoSection><InfoSection title="项目参与者"><div className="member-list">{people.filter(x=>p.people.includes(x.id)).map((x,i)=><button key={x.id} onClick={()=>go(`people/${x.id}`)}><Avatar p={x}/><div><b>{x.name}</b><span>{i===0?'项目联系人':x.role}</span></div><Icon name="arrow"/></button>)}</div></InfoSection><InfoSection title="可能适合的专业成员"><div className="inline-people">{people.filter(x=>!p.people.includes(x.id)).slice(0,3).map(x=><PersonCard key={x.id} p={x}/>)}</div></InfoSection></div><aside><div className="aside-card need-card"><small>当前合作需求</small><h2>寻找{p.need}</h2><p>希望与具有相关能力和资源的专业成员建立联系。</p><button className="btn primary full" onClick={()=>openContact(p.title)}>我可以提供帮助</button></div><div className="aside-card"><h3>项目联系人</h3><button className="owner-button" onClick={()=>go(`people/${owner.id}`)}><Avatar p={owner}/><div><b>{owner.name}</b><span>{owner.role}</span></div><Icon name="arrow"/></button><p className="muted"><Icon name="brief" size={15}/>{owner.org}</p></div><div className="aside-card restricted"><h3><Icon name="lock"/>受限资料</h3>{p.restricted.map(x=><p key={x}>{x}</p>)}<button className="btn outline full">申请查看</button></div></aside></div></section></Layout>}
+
+function Join(){const [step,setStep]=useState(1);const [done,setDone]=useState(false);if(done)return <Layout current="me"><Success title="入驻资料已保存" text="你的演示主页已经生成。正式版本将进入园区审核流程。" action="查看人物主页" onAction={()=>go('people/1')}/></Layout>;return <Layout current="me"><FormPage title="建立你的专业主页" subtitle="用清晰的能力和合作意愿，让合适的人找到你。" step={step} total={4}><div className="form-card">{step===1&&<><h2>你在成果转化中的主要身份</h2><p className="form-note">先选择一个主身份，后续可以继续补充其他角色。</p><div className="choice-grid">{groups.slice(1).map((x,i)=><label key={x}><input type="radio" name="role" defaultChecked={i===1}/><span><Icon name={i===1?'people':'brief'}/><b>{x}</b><small>选择为主页主身份</small></span></label>)}</div></>}{step===2&&<><h2>基本资料</h2><div className="fields"><Field label="姓名" value="林远航"/><Field label="所在机构" value="启新医药创新园"/><Field label="当前职务" value="技术经纪人"/><Field label="所在区域" value="上海"/><Field label="个人简介" area value="专注早期医药成果评价与产业资源对接。"/></div></>}{step===3&&<><h2>专业能力与领域</h2><p className="form-note">选择最能代表你的标签，验证版也支持自定义填写。</p><TagPicker title="专业能力" tags={['技术评价','产业资源对接','许可交易','项目管理','知识产权','投融资']}/><TagPicker title="行业领域" tags={['创新药','生物药','药物递送','诊断技术','数字医疗','生产工艺']}/></>}{step===4&&<><h2>你希望建立怎样的合作</h2><div className="fields"><Field label="我可以提供" area value="项目初筛、交易路径设计与产业方引荐"/><Field label="我正在寻找" area value="寻找有转化意愿的早期医药项目"/><label className="switch-row"><span><b>接受合作申请</b><small>其他会员可以通过平台向你发送申请</small></span><input type="checkbox" defaultChecked/></label><label className="switch-row"><span><b>接受跨区域合作</b><small>在搜索中展示你的服务范围</small></span><input type="checkbox" defaultChecked/></label></div></>}</div><div className="form-actions"><button className="btn ghost" disabled={step===1} onClick={()=>setStep(step-1)}>上一步</button><button className="btn primary" onClick={()=>step<4?setStep(step+1):setDone(true)}>{step<4?'继续':'保存并预览主页'} <Icon name="arrow"/></button></div></FormPage></Layout>}
+
+function Publish(){const [step,setStep]=useState(1);const [done,setDone]=useState(false);if(done)return <Layout current="publish"><Success title="项目已保存并提交" text="验证版已将项目保存在当前浏览器。正式版本将进入项目审核与关系确认流程。" action="返回项目库" onAction={()=>go('projects')}/></Layout>;return <Layout current="publish"><FormPage title="上传合作项目" subtitle="先快速建立项目，再逐步补充资料与参与者。" step={step} total={4}><div className="form-card">{step===1&&<><h2>项目基本信息</h2><div className="fields"><Field label="项目名称" value="新型医药技术项目"/><Field label="一句话简介" value="用一句话说明项目解决的问题和核心价值"/><SelectField label="项目领域" values={fieldOptions.slice(1)}/><SelectField label="当前阶段" values={['实验室阶段','概念验证','临床前','中试阶段','产品验证']}/><Field label="所在区域" value="上海"/></div></>}{step===2&&<><h2>项目详细资料</h2><div className="fields"><Field label="项目概况" area value="介绍项目背景、核心技术和目前取得的进展。"/><Field label="核心优势" area value="填写技术差异、已有验证和潜在应用价值。"/><Field label="知识产权概况" area value="填写专利申请、授权或技术秘密情况。"/></div></>}{step===3&&<><h2>合作需求</h2><TagPicker title="希望获得的合作" tags={['联合开发','产业合作','融资','技术评估','临床合作','园区落地']}/><div className="fields"><Field label="需求说明" area value="说明希望对方提供的能力、资源和下一步合作方式。"/></div></>}{step===4&&<><h2>项目关系与公开范围</h2><SelectField label="你与项目的关系" values={['成果持有人','发明人或研发人员','项目负责人','受托技术经纪人','项目推荐人']}/><div className="relation-note"><Icon name="badge"/><div><b>上传项目不代表拥有项目所有权</b><p>项目公开前，将邀请相关权利人或机构确认关系。</p></div></div><label className="switch-row"><span><b>公开项目基本信息</b><small>名称、简介、领域、阶段与合作需求</small></span><input type="checkbox" defaultChecked/></label><label className="switch-row"><span><b>详细资料需申请查看</b><small>实验数据、商业计划和敏感附件</small></span><input type="checkbox" defaultChecked/></label></>}</div><div className="form-actions"><button className="btn ghost" disabled={step===1} onClick={()=>setStep(step-1)}>上一步</button><button className="btn primary" onClick={()=>step<4?setStep(step+1):setDone(true)}>{step<4?'继续':'预览并提交'} <Icon name="arrow"/></button></div></FormPage></Layout>}
+
+function FormPage({title,subtitle,step,total,children}:{title:string,subtitle:string,step:number,total:number,children:React.ReactNode}){return <section className="form-page"><div className="form-head"><span>步骤 {step} / {total}</span><h1>{title}</h1><p>{subtitle}</p><div className="progress"><i style={{width:`${step/total*100}%`}}/></div></div>{children}</section>}
+function Field({label,value,area=false}:{label:string,value:string,area?:boolean}){return <label className={area?'span-2':''}><span>{label}</span>{area?<textarea defaultValue={value}/>:<input defaultValue={value}/>}</label>}
+function SelectField({label,values}:{label:string,values:string[]}){return <label><span>{label}</span><select>{values.map(x=><option key={x}>{x}</option>)}</select></label>}
+function TagPicker({title,tags}:{title:string,tags:string[]}){const [chosen,setChosen]=useState<string[]>(tags.slice(0,3));return <div className="tag-picker"><b>{title}</b><div>{tags.map(x=><button className={chosen.includes(x)?'active':''} key={x} onClick={()=>setChosen(chosen.includes(x)?chosen.filter(y=>y!==x):[...chosen,x])}>{chosen.includes(x)&&<Icon name="check" size={14}/>} {x}</button>)}<button>＋ 自定义</button></div></div>}
+function Success({title,text,action,onAction}:{title:string,text:string,action:string,onAction:()=>void}){return <section className="success"><span><Icon name="check" size={38}/></span><h1>{title}</h1><p>{text}</p><button className="btn primary" onClick={onAction}>{action}<Icon name="arrow"/></button></section>}
+
+function Dynamic(){const [tab,setTab]=useState<'activity'|'news'>('activity');const [joined,setJoined]=useState<number[]>([]);return <Layout current="dynamic"><section className="page-head dynamic-head"><span>园区动态</span><h1>让专业连接真实发生</h1><p>通过活动认识合作伙伴，通过资讯了解项目和园区的最新进展。</p></section><section className="dynamic-page"><div className="dynamic-tabs"><button className={tab==='activity'?'active':''} onClick={()=>setTab('activity')}>近期活动</button><button className={tab==='news'?'active':''} onClick={()=>setTab('news')}>园区资讯</button></div>{tab==='activity'?<div className="activity-grid">{activities.map(a=><article key={a.id}><div className="activity-cover"><Tag tone="green">{a.type}</Tag><div className="date-block"><b>{a.date.slice(3,5)}</b><span>{a.date.slice(0,3)}</span></div></div><div className="activity-body"><div><span>{a.status}</span><small>{a.people}人已关注</small></div><h2>{a.title}</h2><p>{a.desc}</p><div className="activity-meta"><span>◷ {a.date}</span><span>⌖ {a.place}</span></div><button className={`btn ${joined.includes(a.id)?'outline':'primary'} full`} onClick={()=>setJoined(joined.includes(a.id)?joined.filter(x=>x!==a.id):[...joined,a.id])}>{joined.includes(a.id)?'已报名 · 查看活动':'报名参加'}</button></div></article>)}</div>:<div className="news-list">{news.map((n,i)=><article key={n.id}><div className="news-index">0{i+1}</div><div><div className="news-line"><Tag tone="green">{n.type}</Tag><span>{n.date}</span></div><h2>{n.title}</h2><p>{n.summary}</p></div><button>阅读详情 <Icon name="arrow"/></button></article>)}</div>}</section></Layout>}
+
+function Inbox(){const [accepted,setAccepted]=useState(false);return <Layout current="inbox"><section className="page-head compact"><span>联系与协作</span><h1>我的对接</h1><p>集中处理合作申请、资料申请和项目关系确认。</p></section><section className="inbox-wrap"><div className="inbox-tabs"><button className="active">待处理 <i>2</i></button><button>我发出的</button><button>已建立联系</button><button>全部记录</button></div><article className="request"><Avatar p={people[3]}/><div className="request-main"><div><b>许静宜</b><span>药企商务拓展负责人 · 2小时前</span></div><h3>希望了解「新型靶向药物递送技术」</h3><p>我们正在寻找具有明确临床价值的递送技术，希望了解项目的体内药效进展和合作计划。</p><div className="request-tags"><Tag tone="green">关联项目</Tag><span>新型靶向药物递送技术</span></div></div><div className="request-actions">{accepted?<Tag tone="green">已接受，联系方式已开放</Tag>:<><button className="btn primary" onClick={()=>setAccepted(true)}>接受申请</button><button className="btn ghost">查看详情</button></>}</div></article><article className="request"><Avatar p={people[6]}/><div className="request-main"><div><b>顾言之</b><span>知识产权专家 · 昨天</span></div><h3>邀请你确认项目关系</h3><p>请确认你是否作为技术经纪人参与「生物医药连续生产工艺项目」。</p><div className="request-tags"><Tag>关系确认</Tag><span>拟关联角色：技术经纪人</span></div></div><div className="request-actions"><button className="btn primary">确认关系</button><button className="btn ghost">暂不确认</button></div></article></section></Layout>}
+
+function Me(){return <Layout current="me"><section className="me-wrap"><div className="me-hero"><Avatar p={people[0]} large/><div><h1>林远航</h1><p>认证技术经纪人 · 启新医药创新园</p><Verified/></div><button className="btn outline" onClick={()=>go('join')}>编辑专业主页</button></div><div className="me-grid"><section><h2>工作台</h2><div className="dashboard">{[['2','待处理申请'],['2','我上传的项目'],['3','参与的项目'],['5','收藏内容']].map(x=><button key={x[1]}><b>{x[0]}</b><span>{x[1]}</span><Icon name="arrow"/></button>)}</div></section><section><h2>快捷操作</h2><div className="quick-actions"><button onClick={()=>go('publish')}><span><Icon name="plus"/></span><div><b>上传新项目</b><p>建立项目并邀请相关人员确认</p></div><Icon name="arrow"/></button><button onClick={()=>go('inbox')}><span><Icon name="message"/></span><div><b>处理合作申请</b><p>2条申请正在等待你的回复</p></div><Icon name="arrow"/></button><button onClick={()=>go('people/1')}><span><Icon name="user"/></span><div><b>查看公开主页</b><p>预览其他会员看到的资料</p></div><Icon name="arrow"/></button></div></section></div></section></Layout>}
+
+function ContactModal({target,onClose}:{target:string,onClose:()=>void}){const [sent,setSent]=useState(false);return <div className="modal-bg" onClick={onClose}><div className="modal" onClick={e=>e.stopPropagation()}>{sent?<div className="modal-success"><span><Icon name="check" size={30}/></span><h2>合作申请已发送</h2><p>对方接受后，双方可以进一步交换联系方式。</p><button className="btn primary" onClick={()=>{onClose();go('inbox')}}>查看我的对接</button></div>:<><button className="modal-close" onClick={onClose}>×</button><span className="modal-eyebrow">发起合作</span><h2>联系 {target}</h2><p>带着明确的目的建立专业联系，对方更容易判断是否接受。</p><label><span>联系目的</span><select><option>项目合作</option><option>专业咨询</option><option>资源引荐</option><option>园区落地</option></select></label><label><span>合作说明</span><textarea defaultValue="你好，我关注到你的专业能力与当前项目，希望进一步了解合作可能。"/></label><label className="check-box"><input type="checkbox" defaultChecked/> 对方接受后开放我的联系方式</label><button className="btn primary full" onClick={()=>setSent(true)}>发送合作申请</button></>}</div></div>}
+
+let contactHandler:(target:string)=>void=()=>{}
+function openContact(target:string){contactHandler(target)}
+
+function App(){const [current,setCurrent]=useState(route());const [contact,setContact]=useState('');useEffect(()=>{const h=()=>setCurrent(route());addEventListener('hashchange',h);return()=>removeEventListener('hashchange',h)},[]);contactHandler=setContact;const parts=current.split('/');let page:React.ReactNode;if(parts[0]==='people'&&parts[1])page=<PersonDetail id={Number(parts[1])}/>;else if(parts[0]==='projects'&&parts[1])page=<ProjectDetail id={Number(parts[1])}/>;else page=({home:<Home/>,people:<People/>,projects:<Projects/>,dynamic:<Dynamic/>,join:<Join/>,publish:<Publish/>,inbox:<Inbox/>,me:<Me/>} as Record<string,React.ReactNode>)[parts[0]]||<Home/>;return <>{page}{contact&&<ContactModal target={contact} onClose={()=>setContact('')}/>}</>}
+
+createRoot(document.getElementById('root')!).render(<React.StrictMode><App/></React.StrictMode>)
