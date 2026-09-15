@@ -106,7 +106,7 @@ function ProjectCard({p}:{p:Project}){const owner=people.find(x=>x.id===p.owner)
   </article>}
 
 function Home(){const [kind,setKind]=useState<'people'|'projects'>('people');const [q,setQ]=useState('');const submit=()=>{sessionStorage.setItem('search',q);go(kind)};return <Layout current="home">
-  <section className="hero"><div className="hero-orb orb-one"/><div className="hero-orb orb-two"/><div className="hero-inner"><div className="eyebrow">园区可信网络 · 医药成果转化</div><h1>找到推动医药科技<br/><em>成果转化的人</em></h1><p>从专业能力到真实项目，连接成果持有人、技术经纪人、专家、企业、资本与园区资源。</p>
+  <section className="hero"><div className="hero-orb orb-one"/><div className="hero-orb orb-two"/><div className="hero-inner"><div className="eyebrow">园区可信网络 · 医药成果转化</div><h1>找到推动医药科技<em>成果转化的人</em></h1><p>从专业能力到真实项目，连接成果持有人、技术经纪人、专家、企业、资本与园区资源。</p>
     <div className="search-box"><div className="search-tabs"><button className={kind==='people'?'active':''} onClick={()=>setKind('people')}>找专业的人</button><button className={kind==='projects'?'active':''} onClick={()=>setKind('projects')}>找合作项目</button></div><div className="search-input"><Icon name="search"/><input value={q} onChange={e=>setQ(e.target.value)} onKeyDown={e=>e.key==='Enter'&&submit()} placeholder={kind==='people'?'搜索姓名、机构、专业能力或区域':'搜索项目、领域、阶段或合作需求'}/><button onClick={submit}>开始搜索</button></div></div>
     <div className="quick"><span>热门：</span>{['技术评价','产业合作','园区落地','临床前'].map(x=><button key={x} onClick={()=>{sessionStorage.setItem('search',x);go(kind)}}>{x}</button>)}</div>
   </div></section>
